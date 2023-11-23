@@ -1,24 +1,25 @@
 use serde::de;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::fmt::Display;
 use std::hash::Hash;
 use std::io::Read;
 use std::net::{TcpListener, ToSocketAddrs};
 
 // NOTE: Make the library generic.
-
 // TODO: Figure out a good way to allow a user to send operations
 // TODO: Figure out a good way for user to receiv operations.
+// TODO: Refactor
 
 pub struct CbcastProcess<I: de::DeserializeOwned + Display + Eq + Hash + Copy, A: ToSocketAddrs> {
     pub id: I,
     addr: A,
     pub cc: CbcastClock<I>,
     listener: Option<TcpListener>,
-    send_queue: Vec<u32>,
     // TODO: use a crappy multicast by iterating through tcp sets? group: HashSet<>
-    // TODO: CBCAST QUEUE to ensure Casual delivery queue: CbcastQueue,
+    // Since the paper assumes FIFO I really want to use the guarantees of TCP!
+    causal_queue: BTreeMap<CbcastClock<I>, u32>,
+    // TODO: Confirm ordering in BTree is correct. Make multiple different lamport diagram scenarios to test this.
 }
 
 impl<I: de::DeserializeOwned + Copy + Eq + Hash + Display, A: ToSocketAddrs> Display
@@ -38,13 +39,13 @@ impl<I: de::DeserializeOwned + Copy + Eq + Hash + Display, A: ToSocketAddrs> Cbc
             cc: CbcastClock::new(id),
             listener: None,
             addr,
-            send_queue: vec![],
+            causal_queue: BTreeMap::new(),
         };
         s.cc.vc.insert(s.id, 0);
         s
     }
 
-    // TODO: Actually send the message with TCP (I assume FIFO & am too lazy to implement something on UDP).
+    // TODO: Actually send the message with TCP (I assume FIFO & am too lazy to implement my own protocol on UDP).
     pub fn send(&mut self, _sender_address: &str, message: u32) {
         let id = self.id;
         self.cc.increment(id);
@@ -56,16 +57,6 @@ impl<I: de::DeserializeOwned + Copy + Eq + Hash + Display, A: ToSocketAddrs> Cbc
     pub fn listener(&mut self) {
         let addr = &self.addr;
         self.listener = Some(TcpListener::bind(addr).expect("bind failed"));
-    }
-
-    // TODO: Work in progress for allowing operations??
-    pub fn worker(&mut self, handler: fn(u32)) {
-        if !self.send_queue.is_empty() {
-            let val = self.send_queue.pop().unwrap();
-            self.send("placeholder ip address", val);
-            return;
-        }
-        self.read(handler);
     }
 
     pub fn read(&mut self, handler: fn(u32)) {
@@ -82,7 +73,6 @@ impl<I: de::DeserializeOwned + Copy + Eq + Hash + Display, A: ToSocketAddrs> Cbc
 
     // TODO: Implement receive
     // TODO: need 5 tuple here
-    // FIXME: Not updating vector clock
     pub fn receive(&mut self, message: &str, handler: fn(u32)) {
         // TODO serialize generics
         let message: CbcastMessage<I, u32> = serde_json::from_str(message).unwrap();
@@ -91,19 +81,50 @@ impl<I: de::DeserializeOwned + Copy + Eq + Hash + Display, A: ToSocketAddrs> Cbc
             vc: hmap,
             id: message.sender_id,
         };
-        if self.cc.is_deliverable(cc) {
+        if self.cc.is_deliverable(&cc) {
             println!("message delivered");
             handler(message.data)
         } else {
+            // if causality order is ok then process a bunch of messages
+            // add to map
+            self.causal_queue.insert(cc, message.data);
             println!("message not delivered");
+        }
+        while self.causal_queue.len() > 0 {
+            if let Some(entry) = self.causal_queue.first_entry() {
+                if self.cc.is_deliverable(entry.key()) {
+                    self.causal_queue.pop_first();
+                    continue;
+                } else {
+                    break;
+                }
+            }
+            break;
         }
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Eq)]
 pub struct CbcastClock<T: Eq + Hash + Display> {
     vc: HashMap<T, u32>,
     id: T,
+}
+impl<T: Eq + Hash + Display> PartialEq for CbcastClock<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.vc.iter().eq_by(other.vc.iter(), |x, y| x.1.eq(y.1))
+    }
+}
+
+impl<T: Eq + Hash + Display> PartialOrd for CbcastClock<T> {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.vc.iter().cmp_by(other.vc.iter(), |x, y| x.1.cmp(y.1)))
+    }
+}
+
+impl<T: Eq + Hash + Display> Ord for CbcastClock<T> {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.vc.iter().cmp_by(other.vc.iter(), |x, y| x.1.cmp(y.1))
+    }
 }
 
 impl<T: Eq + Hash + Display> Display for CbcastClock<T> {
@@ -136,27 +157,40 @@ impl<T: Display + Eq + Hash + Copy> CbcastClock<T> {
     }
 
     //FIXME: Not correctly checking vector clocks. Should skip over own process index.
-    pub fn is_deliverable(&mut self, mut other: CbcastClock<T>) -> bool {
+    pub fn is_deliverable(&mut self, other: &CbcastClock<T>) -> bool {
         let mut incr_condition: Option<T> = None;
 
-        for (k, v) in self.vc.iter() {
-            if (*k) == self.id {
+        let mut s_vec = self.into_vec();
+        let mut o_vec = other.into_vec();
+        s_vec.sort_by(|a, b| a.1.cmp(&b.1));
+        o_vec.sort_by(|a, b| a.1.cmp(&b.1));
+
+        // check self vector clock
+        for (k, v) in s_vec {
+            if (k) == self.id {
+                if let Some(index) = o_vec.iter().position(|v| v.0 == k) {
+                    o_vec.remove(index);
+                }
                 continue;
             }
-            let other_val = *other.vc.get(k).unwrap_or(&0);
-            if other_val == *v + 1 && incr_condition.is_none() {
-                other.vc.remove(k);
-                incr_condition = Some(*k);
-                continue;
-            } else if other_val > *v {
+            let other_val = *other.vc.get(&k).unwrap_or(&0);
+            if other_val == v + 1 && incr_condition.is_none() {
+                incr_condition = Some(k);
+            } else if other_val > v {
                 return false;
             }
-            other.vc.remove(k);
+            if let Some(index) = o_vec.iter().position(|v| v.0 == k) {
+                o_vec.remove(index);
+            }
         }
+
         let mut ve = Vec::new();
-        for (k, v) in other.vc.iter() {
-            println!("other hashmap: {} {}", *k, *v);
-            if *v <= 1 {
+
+        // We now check the other vector to see if there are new keys
+        // for (k, v) in other.vc.iter() {
+        for (k, v) in o_vec.iter() {
+            if *v <= 1 && incr_condition.is_none() {
+                incr_condition = Some(*k);
                 ve.push((*k, *v));
             } else {
                 return false;
@@ -165,9 +199,9 @@ impl<T: Display + Eq + Hash + Copy> CbcastClock<T> {
         for (k, v) in &ve {
             self.vc.insert(*k, *v);
         }
-        if let Some(index) = incr_condition {
-            self.increment(index);
-        }
+        // if let Some(index) = incr_condition {
+        //     self.increment(index);
+        // }
         incr_condition.is_some() || !ve.is_empty()
     }
 
@@ -196,11 +230,3 @@ impl<I: Display + Eq + Hash, D> CbcastMessage<I, D> {
         }
     }
 }
-// pub struct CbcastQueue<T> {
-//   bh: BinaryHeap<T>,
-// }
-
-// impl<T> CbcastQueue<T> {
-//   pub fn new() {}
-
-// }
