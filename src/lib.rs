@@ -2,4 +2,4 @@
 pub mod cbcast;
 
 #[cfg(test)]
-pub mod test;
+pub mod tests;
