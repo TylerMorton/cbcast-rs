@@ -5,7 +5,7 @@ updates:
     schedule:
       interval: daily
   - package-ecosystem: cargo
-    direcotry: /
+    directory: /
     schedule:
       interval: daily
     ignore:
