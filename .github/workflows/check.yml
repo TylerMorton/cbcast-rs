@@ -57,7 +57,7 @@ jobs:
         run: cargo doc --no-deps --all-features
         env:
           RUSTDOCFLAGS: --cfg docsrs
-    hack:
+  hack:
     # cargo-hack checks combinations of feature flags to ensure that features are all additive
     # which is required for feature unification
     runs-on: ubuntu-latest
