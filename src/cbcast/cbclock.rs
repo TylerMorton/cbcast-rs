@@ -21,11 +21,7 @@ impl<T: Eq + Hash + Display> PartialEq for CbcastClock<T> {
                 }
             }
         }
-        if cur_len == other_len {
-            true
-        } else {
-            false
-        }
+        cur_len == other_len
     }
 }
 
@@ -48,16 +44,17 @@ impl<T: Eq + Hash + Display> PartialOrd for CbcastClock<T> {
             }
         }
         if cur_len == other_len {
-            return Some(ordering);
+            Some(ordering)
+        } else {
+            Some(Ordering::Less)
         }
-        return Some(Ordering::Less)
     }
 }
 
 impl<T: Eq + Hash + Display> Ord for CbcastClock<T> {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         if let Some(ord) = self.partial_cmp(other) {
-            return ord;
+            ord
         } else {
             Ordering::Equal
         }
