@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::fmt::Display;
 use std::hash::Hash;
@@ -10,20 +11,56 @@ pub struct CbcastClock<T: Eq + Hash + Display> {
 }
 impl<T: Eq + Hash + Display> PartialEq for CbcastClock<T> {
     fn eq(&self, other: &Self) -> bool {
-        self.vc.iter().eq_by(other.vc.iter(), |x, y| x.1.eq(y.1))
+        let other_len = other.vc.len();
+        let mut cur_len = 0;
+        for (k, v) in self.vc.iter() {
+            if let Some(val) = other.vc.get(k) {
+                cur_len += 1;
+                if v != val {
+                    return false;
+                }
+            }
+        }
+        if cur_len == other_len {
+            true
+        } else {
+            false
+        }
     }
 }
 
 // TODO: fix this
 impl<T: Eq + Hash + Display> PartialOrd for CbcastClock<T> {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.vc.iter().cmp_by(other.vc.iter(), |x, y| x.1.cmp(y.1)))
+        let mut ordering: Ordering = Ordering::Equal;
+        let other_len = other.vc.len();
+        let mut cur_len = 0;
+        for (k, v) in self.vc.iter() {
+            if let Some(val) = other.vc.get(k) {
+                cur_len += 1;
+                if val > v {
+                    ordering = Ordering::Greater;
+                    // return Some(std::cmp::Ordering::Greater);
+                }
+                if val < v && ordering != Ordering::Greater {
+                    ordering = Ordering::Less;
+                }
+            }
+        }
+        if cur_len == other_len {
+            return Some(ordering);
+        }
+        return Some(Ordering::Less)
     }
 }
 
 impl<T: Eq + Hash + Display> Ord for CbcastClock<T> {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.vc.iter().cmp_by(other.vc.iter(), |x, y| x.1.cmp(y.1))
+        if let Some(ord) = self.partial_cmp(other) {
+            return ord;
+        } else {
+            Ordering::Equal
+        }
     }
 }
 
