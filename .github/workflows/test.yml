@@ -47,6 +47,8 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
       - name: Install llvm-tools
         run: rustup component add llvm-tools-preview
+      - name: Install grcov
+        run: cargo install grcov
       - name: run coverage script 
         run: ./tester
       - name: List

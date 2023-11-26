@@ -1,7 +1,6 @@
 #!/bin/bash
 
 rm -rf target/coverage
-mkdir target/coverage
 CARGO_INCREMENTAL=0 RUSTFLAGS='-Cinstrument-coverage' LLVM_PROFILE_FILE='cargo-test-%p-%m.profraw' cargo test &&  grcov . --binary-path ./target/debug/deps/ -s . -t lcov --branch --ignore-not-existing --ignore '../*' --excl-br-line "#\[derive\(" --excl-line "#\[derive\(" --ignore "/*" --ignore "*.cargo*" -o lcov.info
 # xmllint --xpath "concat('Coverage: ', 100 * string(//coverage/@line-rate), '%')" target/coverage/cobertura.xml
 
