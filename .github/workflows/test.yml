@@ -33,7 +33,7 @@ jobs:
         run: cargo test --locked --all-features --doc
   lint:
     runs-on: ubuntu-latest
-        name: ubuntu / ${{ matrix.toolchain }}
+    name: ubuntu / ${{ matrix.toolchain }}
     strategy:
       matrix:
         toolchain: [stable, beta]
