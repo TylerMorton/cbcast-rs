@@ -49,6 +49,8 @@ jobs:
         run: rustup component add llvm-tools-preview
       - name: run coverage script 
         run: ./tester
+      - name: show it
+        run: cat lcov.info
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v3
         with:
