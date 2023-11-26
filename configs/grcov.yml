@@ -1,0 +1,11 @@
+branch: true
+ignore-not-existing: true
+  #llvm: true
+  #filter: covered
+output-type: html, cobertura
+output-path: target/coverage
+prefix-dir: /home/user/build/
+ignore:
+  - "/*"
+  - "C:/*"
+  - "../*"
