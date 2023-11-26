@@ -49,7 +49,7 @@ jobs:
         run: rustup component add llvm-tools-preview
       - name: run coverage script 
         run: ./tester
-       - name: Upload to codecov.io
+      - name: Upload to codecov.io
         uses: codecov/codecov-action@v3
         with:
           fail_ci_if_error: true
