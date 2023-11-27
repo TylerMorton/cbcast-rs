@@ -50,10 +50,10 @@ impl<I: de::DeserializeOwned + Copy + Eq + Hash + Display, A: ToSocketAddrs> Cbc
     }
 
     // Starts a listener on local address
-    pub fn listener(&mut self) {
-        let addr = &self.addr;
-        self.listener = Some(TcpListener::bind(addr).expect("bind failed"));
-    }
+    // pub fn listener(&mut self) {
+    //     let addr = &self.addr;
+    //     self.listener = Some(TcpListener::bind(addr).expect("bind failed"));
+    // }
 
     //   pub fn read(&mut self, handler: fn(u32)) {
     //       let mut incoming = self.listener.as_ref().unwrap().incoming();
