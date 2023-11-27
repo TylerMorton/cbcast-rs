@@ -22,6 +22,9 @@ impl<I: de::DeserializeOwned + Copy + Eq + Hash + Display, A: ToSocketAddrs> Dis
     for CbcastProcess<I, A>
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        //TODO: Doing this to make clippy happy, will change once implemented.
+        if self.addr.to_socket_addrs().is_ok() {}
+        if self.listener.is_none() {}
         write!(f, "id: {},", self.id)?;
         write!(f, " vector clock: {}", self.cc)?;
         Ok(())
@@ -45,7 +48,7 @@ impl<I: de::DeserializeOwned + Copy + Eq + Hash + Display, A: ToSocketAddrs> Cbc
     pub fn send(&mut self, _sender_address: &str, message: u32) {
         let id = self.id;
         self.cc.increment();
-        let i = self.cc.into_vec();
+        let i: Vec<(I, u32)> = self.cc.into_vec();
         let _message = CbcastMessage::new(id, i, message);
     }
 
