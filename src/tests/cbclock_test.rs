@@ -42,6 +42,24 @@ fn clock_deliverable_many_other() {
 }
 
 #[test]
+fn clock_not_deliverable_many_other() {
+    let mut cc = CbcastClock::new(1);
+    let mut other_cc = CbcastClock::new(2);
+    other_cc.insert(1, 1);
+    other_cc.increment();
+    assert!(!cc.is_deliverable(&other_cc));
+}
+
+#[test]
+fn clock_not_deliverable_other_too_large() {
+    let mut cc = CbcastClock::new(1);
+    let mut other_cc = CbcastClock::new(2);
+    other_cc.insert(1, 3);
+    assert!(!cc.is_deliverable(&other_cc));
+}
+
+
+#[test]
 fn clock_not_deliverable() {
     let mut cc = CbcastClock::new(1);
     let other_cc = CbcastClock::new(2);
@@ -57,8 +75,14 @@ fn clock_eq() {
 
 #[test]
 fn clock_neq() {
-    let cc = CbcastClock::new(1);
-    let mut other_cc = CbcastClock::new(2);
+    let mut cc_map = HashMap::new();
+    cc_map.insert(1, 0);
+    cc_map.insert(2, 0);
+    let mut other_map = HashMap::new();
+    other_map.insert(1, 0);
+    other_map.insert(2, 0);
+    let cc = CbcastClock::from_map(1, cc_map);
+    let mut other_cc = CbcastClock::from_map(2, other_map);
     other_cc.increment();
     assert!(!cc.eq(&other_cc))
 }

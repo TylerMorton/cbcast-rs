@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use core::panic;
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::fmt::Display;
@@ -34,11 +35,13 @@ impl<T: Eq + Hash + Display> PartialOrd for CbcastClock<T> {
         for (k, v) in self.vc.iter() {
             if let Some(val) = other.vc.get(k) {
                 cur_len += 1;
+                if (val > v && ordering == Ordering::Less) || (val < v && ordering == Ordering::Greater) {
+                    panic!("invalid vector configuration");
+                }
                 if val > v {
                     ordering = Ordering::Greater;
-                    // return Some(std::cmp::Ordering::Greater);
                 }
-                if val < v && ordering != Ordering::Greater {
+                if val < v {
                     ordering = Ordering::Less;
                 }
             }
@@ -46,6 +49,7 @@ impl<T: Eq + Hash + Display> PartialOrd for CbcastClock<T> {
         if cur_len == other_len {
             Some(ordering)
         } else {
+            // TODO: Need to handle this case or else we have a bug.
             Some(Ordering::Less)
         }
     }
@@ -56,8 +60,9 @@ impl<T: Eq + Hash + Display> Ord for CbcastClock<T> {
         if let Some(ord) = self.partial_cmp(other) {
             ord
         } else {
-            Ordering::Equal
+            panic!("Impossible vector clock configuration");
         }
+
     }
 }
 
@@ -69,7 +74,6 @@ impl<T: Eq + Hash + Display> Display for CbcastClock<T> {
         if let Some(val) = first {
             write!(f, "({}, {})", val.0, val.1)?;
         }
-        if first.is_some() {}
         for i in iterator {
             write!(f, ", ({}, {})", i.0, i.1)?;
         }
