@@ -109,9 +109,9 @@ fn process_receive_causally_unordered_delivery() {
     let result_str = p_3.to_string();
     println!("{}", result_str);
     assert!(
-        result_str == "id: 3, vector clock: [(1, 0), (2, 0) (3, 0)]"
-            || result_str == "id: 3, vector clock: [(3, 0), (1, 0) (2, 0)]"
-            || result_str == "id: 3, vector clock: [(3, 0), (2, 0) (1, 0)]"
+        result_str == "id: 3, vector clock: [(1, 0), (2, 0), (3, 0)]"
+            || result_str == "id: 3, vector clock: [(3, 0), (1, 0), (2, 0)]"
+            || result_str == "id: 3, vector clock: [(3, 0), (2, 0), (1, 0)]"
             || result_str == "id: 3, vector clock: [(2, 0), (3, 0), (1, 0)]"
             || result_str == "id: 3, vector clock: [(2, 0), (1, 0), (3, 0)]"
             || result_str == "id: 3, vector clock: [(1, 0), (3, 0), (2, 0)]"
