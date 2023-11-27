@@ -58,7 +58,6 @@ fn clock_not_deliverable_other_too_large() {
     assert!(!cc.is_deliverable(&other_cc));
 }
 
-
 #[test]
 fn clock_not_deliverable() {
     let mut cc = CbcastClock::new(1);

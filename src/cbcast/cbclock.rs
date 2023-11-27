@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use core::panic;
+use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::fmt::Display;
@@ -35,7 +35,9 @@ impl<T: Eq + Hash + Display> PartialOrd for CbcastClock<T> {
         for (k, v) in self.vc.iter() {
             if let Some(val) = other.vc.get(k) {
                 cur_len += 1;
-                if (val > v && ordering == Ordering::Less) || (val < v && ordering == Ordering::Greater) {
+                if (val > v && ordering == Ordering::Less)
+                    || (val < v && ordering == Ordering::Greater)
+                {
                     panic!("invalid vector configuration");
                 }
                 if val > v {
@@ -62,7 +64,6 @@ impl<T: Eq + Hash + Display> Ord for CbcastClock<T> {
         } else {
             panic!("Impossible vector clock configuration");
         }
-
     }
 }
 
