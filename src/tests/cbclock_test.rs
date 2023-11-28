@@ -1,10 +1,9 @@
-use std::{collections::HashMap, cmp::Ordering};
+use std::{cmp::Ordering, collections::HashMap};
 
 use crate::cbcast::*;
 use cbclock::CbcastClock;
 
-
-// 
+//
 // Delivery tests
 //
 
@@ -97,47 +96,47 @@ fn clock_neq() {
 
 #[test]
 fn clock_cmp_equal() {
-  let cc = CbcastClock::new(1);
-  let other_cc = CbcastClock::new(2);
-  assert!(cc.cmp(&other_cc) == Ordering::Equal);
+    let cc = CbcastClock::new(1);
+    let other_cc = CbcastClock::new(2);
+    assert!(cc.cmp(&other_cc) == Ordering::Equal);
 }
 
 #[test]
 fn clock_cmp_equal_cc_greater() {
-  let mut cc = CbcastClock::new(1);
-  cc.increment();
-  let other_cc = CbcastClock::new(2);
-  assert!(cc.cmp(&other_cc) == Ordering::Equal);
+    let mut cc = CbcastClock::new(1);
+    cc.increment();
+    let other_cc = CbcastClock::new(2);
+    assert!(cc.cmp(&other_cc) == Ordering::Equal);
 }
 
 #[test]
 fn clock_cmp_greater() {
-  let mut hmap = HashMap::new();
-  hmap.insert(1, 1);
-  hmap.insert(2, 0);
+    let mut hmap = HashMap::new();
+    hmap.insert(1, 1);
+    hmap.insert(2, 0);
 
-  let mut hmap_other = HashMap::new();
-  hmap_other.insert(1, 0);
-  hmap_other.insert(2, 0);
+    let mut hmap_other = HashMap::new();
+    hmap_other.insert(1, 0);
+    hmap_other.insert(2, 0);
 
-  let cc = CbcastClock::from_map(1, hmap);
-  let other_cc = CbcastClock::from_map(2, hmap_other);
-  assert!(cc.cmp(&other_cc) == Ordering::Greater);
+    let cc = CbcastClock::from_map(1, hmap);
+    let other_cc = CbcastClock::from_map(2, hmap_other);
+    assert!(cc.cmp(&other_cc) == Ordering::Greater);
 }
 
 #[test]
 fn clock_cmp_less() {
-  let mut hmap = HashMap::new();
-  hmap.insert(1, 1);
-  hmap.insert(2, 0);
+    let mut hmap = HashMap::new();
+    hmap.insert(1, 1);
+    hmap.insert(2, 0);
 
-  let mut hmap_other = HashMap::new();
-  hmap_other.insert(1, 0);
-  hmap_other.insert(2, 0);
+    let mut hmap_other = HashMap::new();
+    hmap_other.insert(1, 0);
+    hmap_other.insert(2, 0);
 
-  let cc = CbcastClock::from_map(1, hmap);
-  let other_cc = CbcastClock::from_map(2, hmap_other);
-  assert!(other_cc.cmp(&cc) == Ordering::Less);
+    let cc = CbcastClock::from_map(1, hmap);
+    let other_cc = CbcastClock::from_map(2, hmap_other);
+    assert!(other_cc.cmp(&cc) == Ordering::Less);
 }
 
 #[test]
