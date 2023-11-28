@@ -91,9 +91,8 @@ impl<I: de::DeserializeOwned + Copy + Eq + Hash + Display, A: ToSocketAddrs> Cbc
                 if self.cc.is_deliverable(entry.key()) {
                     self.causal_queue.pop_first();
                     continue;
-                } else {
-                    break;
                 }
+                break;
             }
         }
     }

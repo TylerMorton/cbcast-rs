@@ -1,7 +1,7 @@
 use crate::cbcast::*;
 use cbmessage::CbcastMessage;
 use cbprocess::CbcastProcess;
-use std::{net::*, result};
+use std::net::*;
 
 #[test]
 fn process_init() {

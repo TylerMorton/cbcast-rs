@@ -41,10 +41,10 @@ impl<T: Eq + Hash + Display> PartialOrd for CbcastClock<T> {
                     panic!("invalid vector configuration");
                 }
                 if val > v {
-                    ordering = Ordering::Greater;
+                    ordering = Ordering::Less;
                 }
                 if val < v {
-                    ordering = Ordering::Less;
+                    ordering = Ordering::Greater;
                 }
             }
         }
