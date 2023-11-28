@@ -95,7 +95,6 @@ impl<I: de::DeserializeOwned + Copy + Eq + Hash + Display, A: ToSocketAddrs> Cbc
                     break;
                 }
             }
-            break;
         }
     }
 }
