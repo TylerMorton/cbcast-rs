@@ -110,6 +110,25 @@ fn clock_cmp_equal_cc_greater() {
 }
 
 #[test]
+#[should_panic]
+fn clock_cmp_fail() {
+    let mut hmap = HashMap::new();
+    hmap.insert(1, 1);
+    hmap.insert(2, 0);
+
+    let mut hmap_other = HashMap::new();
+    hmap_other.insert(1, 0);
+    hmap_other.insert(2, 1);
+
+    let cc = CbcastClock::from_map(1, hmap);
+    let other_cc = CbcastClock::from_map(2, hmap_other);
+    // Below is to get around clippy
+    if cc.cmp(&other_cc) == Ordering::Greater {
+        return
+    }
+}
+
+#[test]
 fn clock_cmp_greater() {
     let mut hmap = HashMap::new();
     hmap.insert(1, 1);

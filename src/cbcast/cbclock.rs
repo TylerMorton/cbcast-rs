@@ -35,8 +35,8 @@ impl<T: Eq + Hash + Display> PartialOrd for CbcastClock<T> {
         for (k, v) in self.vc.iter() {
             if let Some(val) = other.vc.get(k) {
                 cur_len += 1;
-                if (val > v && ordering == Ordering::Less)
-                    || (val < v && ordering == Ordering::Greater)
+                if (val < v && ordering == Ordering::Less)
+                    || (val > v && ordering == Ordering::Greater)
                 {
                     panic!("invalid vector configuration");
                 }
