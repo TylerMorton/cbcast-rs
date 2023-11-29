@@ -124,7 +124,7 @@ fn clock_cmp_fail() {
     let other_cc = CbcastClock::from_map(2, hmap_other);
     // Below is to get around clippy
     if cc.cmp(&other_cc) == Ordering::Greater {
-        return
+        return;
     }
 }
 
