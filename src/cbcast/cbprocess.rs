@@ -1,8 +1,9 @@
 use serde::de;
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::fmt::Display;
 use std::hash::Hash;
-use std::net::{TcpListener, ToSocketAddrs};
+use std::net::*;
+// use std::net::{TcpListener, ToSocketAddrs, TcpStream};
 
 use crate::cbcast::cbclock::CbcastClock;
 use crate::cbcast::cbmessage::CbcastMessage;
@@ -13,6 +14,8 @@ pub struct CbcastProcess<I: de::DeserializeOwned + Display + Eq + Hash + Copy, A
     pub cc: CbcastClock<I>,
     listener: Option<TcpListener>,
     // TODO: use a crappy multicast by iterating through tcp sets? group: HashSet<>
+    viewgroup: HashMap<I, A>,
+    streams: HashMap<I, TcpStream>,
     // Since the paper assumes FIFO I really want to use the guarantees of TCP!
     causal_queue: BTreeMap<CbcastClock<I>, u32>,
     // TODO: Confirm ordering in BTree is correct. Make multiple different lamport diagram scenarios to test this.
@@ -38,6 +41,8 @@ impl<I: de::DeserializeOwned + Copy + Eq + Hash + Display, A: ToSocketAddrs> Cbc
             cc: CbcastClock::new(id),
             listener: None,
             addr,
+            viewgroup: HashMap::new(),
+            streams: HashMap::new(),
             causal_queue: BTreeMap::new(),
         };
         s.cc.insert(s.id, 0);
@@ -51,6 +56,52 @@ impl<I: de::DeserializeOwned + Copy + Eq + Hash + Display, A: ToSocketAddrs> Cbc
         let i: Vec<(I, u32)> = self.cc.into_vec();
         let _message = CbcastMessage::new(id, i, message);
     }
+
+
+    pub fn viewgroup_add(&mut self) {
+    }
+
+    pub fn viewgroup_remove(&mut self) {}
+
+    pub fn viewgroup_list(&self) {
+        for i in self.viewgroup.iter() {
+            println!("{}", i.0);
+        }
+    }
+
+    // attempts to create streams to all members of view
+    // all available connections are viewable in self.streams
+
+    pub fn listener_up(&mut self) {
+        let addr = &self.addr;
+        self.listener = Some(TcpListener::bind(addr).expect("bind failed"));
+
+    }
+
+    pub fn connections_up(&mut self) {
+        if self.listener.is_none() {
+            self.listener_up();
+        }
+        for (id, addr) in self.viewgroup.iter() {
+            if self.streams.get(id).is_some() {
+                continue
+            }
+            if let Ok(stream) = TcpStream::connect(addr) {
+                self.streams.insert(*id, stream);
+            }
+        }
+    }
+
+    // drops connections (nicely) to all members
+    pub fn connection_down(&mut self) {
+        for (i, _) in self.viewgroup.iter() {
+            if let Some(stream) = self.streams.get(i) {
+                stream.shutdown(Shutdown::Both).expect("shutdown failed for a stream");
+                self.streams.remove(i);
+            }
+        }
+    }
+
 
     // Starts a listener on local address
     // pub fn listener(&mut self) {

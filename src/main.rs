@@ -84,20 +84,22 @@ fn main() {
     // Process initialization
     let p_1 = CbcastProcess::new(
         1,
-        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080),
+        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 5000),
     );
     let p_2 = CbcastProcess::new(
         2,
-        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080),
+        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 5001),
     );
-    let p_3 = CbcastProcess::new(
-        3,
-        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080),
-    );
+    // let p_3 = CbcastProcess::new(
+    //     3,
+    //     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 5002),
+    // );
 
-    if env::args().next_back().is_some() {
-        causal_order_out_of_order(p_1, p_2, p_3, handler);
-    } else {
-        normal_process(p_1, p_2, handler);
-    }
+
+
+    // if env::args().next_back().is_some() {
+    //     causal_order_out_of_order(p_1, p_2, p_3, handler);
+    // } else {
+    //     normal_process(p_1, p_2, handler);
+    // }
 }
