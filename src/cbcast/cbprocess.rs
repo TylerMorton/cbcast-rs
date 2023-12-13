@@ -29,8 +29,12 @@ impl<I: serde::Serialize + de::DeserializeOwned + Copy + Eq + Hash + Display, A:
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         //TODO: Doing this to make clippy happy, will change once implemented.
-        if self.addr.to_socket_addrs().is_ok() {}
-        if self.listener.is_none() {}
+        if self.addr.to_socket_addrs().is_ok() {
+            write!(f, "socket address exists, ")?;
+        }
+        if self.listener.is_none() {
+            write!(f, "listener active, ")?;
+        }
         write!(f, "id: {},", self.id)?;
         write!(f, " vector clock: {}", self.cc)?;
         Ok(())
@@ -118,9 +122,12 @@ impl<I: serde::Serialize + de::DeserializeOwned + Copy + Eq + Hash + Display, A:
         let cbmessage = CbcastMessage::new(self.id, vector_clock, message);
         let mut serial_message = serde_json::to_string(&cbmessage).unwrap();
         serial_message.push_str("\r\n");
+        let expected_len = serial_message.len();
 
-        for (_id, stream) in &mut self.streams {
-            (*stream).write(serial_message.as_bytes()).unwrap();
+        for stream in self.streams.values_mut() {
+            if expected_len != (*stream).write(serial_message.as_bytes()).unwrap() {
+                panic!("tcp write didn't broadcast all data.");
+            }
         }
     }
 
@@ -140,7 +147,7 @@ impl<I: serde::Serialize + de::DeserializeOwned + Copy + Eq + Hash + Display, A:
                 stream_read = true
             }
         }
-        if !stream_read && self.causal_queue.len() > 0 {
+        if !stream_read && !self.causal_queue.is_empty() {
             self.causal_queue
                 .pop_first()
                 .unwrap()

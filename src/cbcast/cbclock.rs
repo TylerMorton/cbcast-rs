@@ -27,6 +27,7 @@ impl<T: Eq + Hash + Display> PartialEq for CbcastClock<T> {
 }
 
 // TODO: fix this
+#[allow(clippy::non_canonical_partial_ord_impl)]
 impl<T: Eq + Hash + Display> PartialOrd for CbcastClock<T> {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         let mut ordering: Ordering = Ordering::Equal;

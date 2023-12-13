@@ -18,18 +18,10 @@ fn process_fmt() {
         1,
         SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080),
     );
-    assert!(p_1.to_string() == "id: 1, vector clock: [(1, 0)]");
+    assert!(
+        p_1.to_string() == "socket address exists, listener active, id: 1, vector clock: [(1, 0)]"
+    );
 }
-
-// #[test]
-// fn process_send() {
-//     let mut p_1 = CbcastProcess::new(
-//         1,
-//         SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080),
-//     );
-//     p_1.send("hello", 1);
-//     assert!(p_1.to_string() == "id: 1, vector clock: [(1, 1)]");
-// }
 
 #[test]
 fn process_broadcast() {
@@ -59,8 +51,8 @@ fn process_broadcast() {
     println!("{}", p_1.to_string());
     let string = p_1.to_string();
     assert!(
-        string == "id: 1, vector clock: [(2, 0), (1, 1)]"
-            || string == "id: 1, vector clock: [(1, 1), (2, 0)]"
+        string == "socket address exists, id: 1, vector clock: [(2, 0), (1, 1)]"
+            || string == "socket address exists, id: 1, vector clock: [(1, 1), (2, 0)]"
     );
 }
 
@@ -93,8 +85,10 @@ fn process_receive() {
     println!("{}", p_1);
     let result_str = p_1.to_string();
     assert!(
-        result_str == "id: 1, vector clock: [(1, 0), (2, 0)]"
-            || result_str == "id: 1, vector clock: [(2, 0), (1, 0)]"
+        result_str
+            == "socket address exists, listener active, id: 1, vector clock: [(1, 0), (2, 0)]"
+            || result_str
+                == "socket address exists, listener active, id: 1, vector clock: [(2, 0), (1, 0)]"
     );
 }
 
@@ -122,7 +116,7 @@ fn process_receive_causally_unordered_no_delivery() {
     let reply_message = serde_json::to_string(&reply_message).expect("will work");
     p_3.receive(&reply_message, handler);
     let result_str = p_3.to_string();
-    assert!(result_str == "id: 3, vector clock: [(3, 0)]");
+    assert!(result_str == "socket address exists, listener active, id: 3, vector clock: [(3, 0)]");
 }
 
 #[test]
@@ -152,12 +146,12 @@ fn process_receive_causally_unordered_delivery() {
     let result_str = p_3.to_string();
     println!("{}", result_str);
     assert!(
-        result_str == "id: 3, vector clock: [(1, 0), (2, 0), (3, 0)]"
-            || result_str == "id: 3, vector clock: [(3, 0), (1, 0), (2, 0)]"
-            || result_str == "id: 3, vector clock: [(3, 0), (2, 0), (1, 0)]"
-            || result_str == "id: 3, vector clock: [(2, 0), (3, 0), (1, 0)]"
-            || result_str == "id: 3, vector clock: [(2, 0), (1, 0), (3, 0)]"
-            || result_str == "id: 3, vector clock: [(1, 0), (3, 0), (2, 0)]"
+        result_str == "socket address exists, listener active, id: 3, vector clock: [(1, 0), (2, 0), (3, 0)]"
+            || result_str == "socket address exists, listener active, id: 3, vector clock: [(3, 0), (1, 0), (2, 0)]"
+            || result_str == "socket address exists, listener active, id: 3, vector clock: [(3, 0), (2, 0), (1, 0)]"
+            || result_str == "socket address exists, listener active, id: 3, vector clock: [(2, 0), (3, 0), (1, 0)]"
+            || result_str == "socket address exists, listener active, id: 3, vector clock: [(2, 0), (1, 0), (3, 0)]"
+            || result_str == "socket address exists, listener active, id: 3, vector clock: [(1, 0), (3, 0), (2, 0)]"
     );
 }
 // Major test case: two processes talk, delivery is out of order.
