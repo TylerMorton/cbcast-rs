@@ -1,5 +1,5 @@
-use crate::cbcast::*;
 use super::utility::create_processes;
+use crate::cbcast::*;
 use cbmessage::CbcastMessage;
 use cbprocess::CbcastProcess;
 use std::net::*;
