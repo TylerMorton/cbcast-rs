@@ -13,7 +13,7 @@ pub struct CbcastProcess<
     A: ToSocketAddrs,
 > {
     pub id: I,
-    addr: A,
+    pub addr: A,
     pub cc: CbcastClock<I>,
     listener: Option<TcpListener>,
     // TODO: use a crappy multicast by iterating through tcp sets? group: HashSet<>

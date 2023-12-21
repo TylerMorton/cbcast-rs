@@ -1,7 +1,7 @@
 pub mod cbcast;
 
 #[cfg(test)]
-pub mod tests;
+pub mod unit_tests;
 
 // Initialize
 
