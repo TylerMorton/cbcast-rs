@@ -56,6 +56,6 @@ jobs:
       - name: show it
         run: cat lcov.info
       - name: Upload to codecov.io
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           fail_ci_if_error: true
